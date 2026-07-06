@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>작물 상세 · 영동에덴원</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F4EDE0;--ink:#2A1F14;--gold:#8B6F47;--line:#d8c9b0;--high:#6b8e4e;--medium:#c79a3c;--danger:#b0472b;
+      --sow:#6b8e4e;--flo:#c79a3c;--mid:#9a7bb0;--harv:#b0472b;--today:#c0392b;--band:#cfe0b8;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Noto Sans KR',sans-serif;line-height:1.6}
+.wrap{max-width:940px;margin:0 auto;padding:16px 14px 60px}
+.back{display:inline-block;font-size:.85rem;color:var(--gold);text-decoration:none;margin-bottom:12px}
+.back:hover{text-decoration:underline}
+.chead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+h1{font-family:'Gowun Batang',serif;font-size:1.9rem;margin:0}
+.tag{font-size:.78rem;border:1px solid var(--line);border-radius:20px;padding:3px 11px;color:#6b5536;background:#fff}
+.tag.season{border-color:var(--gold);color:var(--gold)}
+.metaline{font-size:.82rem;color:#9a8a70;margin-bottom:16px;line-height:1.6}
+.conf{font-size:.72rem;padding:2px 9px;border-radius:10px;white-space:nowrap}
+.conf.high{background:#eef4e6;color:var(--high)}
+.conf.mid{background:#fdf4e3;color:#b8892f}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.card h2{font-family:'Gowun Batang',serif;font-size:1.1rem;margin:0 0 10px;color:var(--ink)}
+.tl-wrap{overflow-x:auto}
+.tl-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:#6b5536;margin-top:10px;align-items:center;background:#faf6ee;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.tl-legend .it{display:flex;align-items:center;gap:6px}
+.tl-legend .sw{width:20px;height:11px;border-radius:3px;display:inline-block}
+.tl-legend .mk{width:13px;height:13px;display:inline-block}
+.tl-sum{font-size:.8rem;color:#4a3f30;margin-top:10px;line-height:1.7}
+.tl-sum b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.box{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fbf7ef}
+.box .k{font-size:.76rem;font-weight:700;color:var(--gold);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.box .k .mk{width:9px;height:9px;border-radius:50%;display:inline-block}
+.box .v{font-size:.9rem;color:var(--ink)}
+.box .v .big{font-weight:700}
+.box .sub{font-size:.76rem;color:#9a8a70;margin-top:3px;line-height:1.5}
+.mini-h{font-size:.82rem;font-weight:700;color:var(--gold);margin:14px 0 4px}
+.fertrow{font-size:.88rem;padding:5px 0;border-bottom:1px dashed var(--line)}
+.fertrow:last-child{border-bottom:none}
+.fertrow .t{color:#9a8a70;font-size:.78rem;margin-left:6px}
+.fnote{font-size:.76rem;color:#6b5536;margin-top:2px;line-height:1.5}
+.tgt{display:inline-block;font-size:.75rem;background:#f3ece0;border:1px solid var(--line);border-radius:12px;padding:2px 9px;margin:4px 4px 0 0}
+.small{font-size:.78rem;color:#9a8a70;line-height:1.6}
+/* ── 두둑 풀위젯 (crop_log.html 이식) ── */
+.soilsel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.soilbtn{font-family:inherit;font-size:.86rem;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:20px;padding:6px 15px;cursor:pointer}
+.soilbtn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.bed-soilnote{font-size:.78rem;color:#6b5536;margin:2px 0 8px;line-height:1.55}
+.bed-soilnote b{color:var(--gold)}
+.mulch-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:2px 0 6px}
+.mulch-lbl{font-size:.8rem;color:var(--gold);font-weight:500;margin-right:2px}
+.mbtn{font-family:inherit;font-size:.8rem;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:20px;padding:5px 12px;cursor:pointer}
+.mbtn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.mulch-note{font-size:.76rem;color:#4a3f30;background:#fbf7ef;border-radius:6px;padding:7px 10px;margin-bottom:8px;line-height:1.5}
+.svgwrap{background:#fbf7ef;border:1px solid var(--line);border-radius:10px;padding:6px 4px;margin-bottom:10px}
+.bsl{margin-bottom:11px}
+.bsl-h{display:flex;justify-content:space-between;align-items:baseline}
+.bsl-lab{font-size:.83rem;font-weight:500;color:var(--ink)}
+.bsl-val{font-size:.83rem;font-weight:700;color:var(--ink)}
+.bsl input[type=range]{width:100%;margin:3px 0 0;accent-color:var(--gold)}
+.bsl-j{font-size:.76rem;margin-top:2px;display:flex;align-items:baseline;gap:5px;line-height:1.45;color:#4a3f30}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;transform:translateY(1px)}
+.bsl-j .op{color:#b0a189;margin-left:auto;white-space:nowrap;padding-left:8px}
+.bed-summary{font-size:.8rem;border-left:3px solid var(--line);padding:7px 11px;background:#fbf7ef;border-radius:6px;margin-top:4px}
+.state{padding:40px 16px;text-align:center;color:#9a8a70;font-size:.9rem}
+.tip{position:fixed;display:none;background:var(--ink);color:#fff;font-size:.76rem;padding:7px 10px;border-radius:6px;max-width:250px;pointer-events:none;z-index:30;line-height:1.45}
+.tlguide{position:fixed;width:0;border-left:1px dashed rgba(42,31,20,0.5);pointer-events:none;z-index:29;display:none}
+.ctrls{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:2px 0 12px;padding:10px 12px;background:#fbf7ef;border:1px solid var(--line);border-radius:8px}
+.ctrl{display:flex;align-items:center;gap:8px;font-size:.8rem;color:#6b5536}
+.ctrl > label{font-weight:700;color:var(--gold);white-space:nowrap}
+.ctrl input[type=range]{width:130px;accent-color:var(--gold)}
+.ctrl .val{font-weight:700;color:var(--ink);min-width:46px}
+.rst{font-family:inherit;font-size:.75rem;border:1px solid var(--line);background:#fff;color:#6b5536;border-radius:14px;padding:3px 10px;cursor:pointer}
+.status{background:#fff;border:1px solid var(--line);border-left:4px solid var(--sow);border-radius:12px;padding:12px 15px;margin-bottom:14px}
+.st-h{font-family:'Gowun Batang',serif;font-size:1.02rem;margin:0 0 6px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.st-today{font-size:.72rem;color:#9a8a70;font-weight:400}
+.st-body{font-size:.88rem;color:#4a3f30;line-height:1.7}
+.st-body b{color:var(--ink)}
+.st-tasks{margin-top:5px;font-size:.82rem;color:#6b5536}
+.st-tag{display:inline-block;font-size:.72rem;border-radius:10px;padding:2px 9px;margin:3px 5px 0 0;background:#f3ece0;color:#6b5536}
+.badge-off{font-size:.72rem;background:#fdf4e3;color:#b8892f;border-radius:10px;padding:2px 9px}
+.pest-item{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:8px;background:#fbf7ef}
+.pest-hd{font-size:.9rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pest-hd b{color:var(--ink)}
+.pbadge{font-size:.68rem;font-weight:700;border-radius:9px;padding:2px 8px;color:#fff}
+.pbadge.dis{background:#9b3d3d}
+.pbadge.pest{background:#b5842b}
+.psev{font-size:.68rem;border-radius:9px;padding:1px 7px}
+.psev.high{background:#f6dede;color:#9b3d3d}
+.psev.mid{background:#f1ece0;color:#8a7a55}
+.pest-time{font-size:.75rem;color:#9a8a70;margin-left:auto}
+.pest-l{font-size:.82rem;color:#4a3f30;margin-top:4px;line-height:1.55}
+.pest-l .pk{font-weight:700;color:var(--gold);margin-right:4px}
+.pest-src{font-size:.74rem;color:#9a8a70;margin-top:4px}
+.pest-src a{color:#6b5536}
+@media(min-width:1600px){ h1{font-size:2.4rem} body{font-size:1.05rem} .card h2{font-size:1.3rem} }
+</style></head>
+<body><div class="wrap">
+  <a class="back" id="backlink" href="/crop_calendar.html">← 재배 달력</a>
+  <div id="app"><div class="state">불러오는 중…</div></div>
+</div>
+<div class="tip" id="tip"></div>
+<div class="tlguide" id="tlguide"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const C = {r:'#C0392B', y:'#BA7517', g:'#3B6D11'};
+const soilFill = {'모래질':'#D8C39A','참흙':'#C6A16E','질참흙':'#B08A5A','진흙질':'#AC744E'};
+const MK = {sowing:'var(--sow)', flowering:'var(--flo)', mid:'var(--mid)', harvest:'var(--harv)'};
+const PHC = {sowing:'#6b8e4e', grow:'#9a7bb0', harvest:'#b0472b'};
+const MONTH_CUM = [0,31,59,90,120,151,181,212,243,273,304,334,365];
+const mid = a => Math.round((a[0]+a[1])/2);
+const V = {};
+let curBed=null, mulch='side', curSoilSel='참흙', ENTRY=null, STAGES=null;
+let SOW_OFFSET=0, ZOOM=1, CUR_TL=null;
+
+function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function qp(k){ return new URLSearchParams(location.search).get(k) || ''; }
+function todayDoy(){ const n=new Date(); const s=new Date(n.getFullYear(),0,1); return Math.floor((n-s)/86400000)+1; }
+function doyToLabel(doy){ let d=((doy-1)%365+365)%365; const dt=new Date(2026,0,1); dt.setDate(dt.getDate()+d); return (dt.getMonth()+1)+'/'+dt.getDate(); }
+
+/* ── 달력 인포그래픽 타임라인 (서버 timeline 구조 기반) ── */
+function monthBounds(d, which){
+  var yr=Math.floor(d/365), within=d-yr*365, m=0;
+  for(var i=0;i<12;i++){ if(within>=MONTH_CUM[i]) m=i; }
+  return which==='end' ? (yr*365+MONTH_CUM[m+1]) : (yr*365+MONTH_CUM[m]);
+}
+function drawTimeline(tl){
+  if(!tl) return '';
+  var phases=tl.phases||[], prep=tl.prep||[], care=tl.care||[], mon=tl.monsoon||null;
+  var sowP=phases.filter(function(p){return p.key==='sowing';})[0];
+  var harvP=phases.filter(function(p){return p.key==='harvest';})[0];
+  var sowStart = sowP ? sowP.start : (phases.length ? Math.min.apply(null,phases.map(function(p){return p.start;})) : 0);
+  var wrap = !!(harvP && sowP && harvP.start < sowP.start);
+  function sh(d){ return (wrap && d < sowStart) ? d+365 : d; }
+
+  var act=[];
+  phases.forEach(function(p){ act.push(sh(p.start),sh(p.end)); });
+  prep.forEach(function(p){ if(p.doy!=null)act.push(sh(p.doy)); if(p.start!=null){act.push(sh(p.start),sh(p.end));} });
+  care.forEach(function(c){ if(c.doy!=null)act.push(sh(c.doy)); if(c.start!=null){act.push(sh(c.start),sh(c.end));} if(c.doys)c.doys.forEach(function(d){act.push(sh(d));}); });
+  if(!act.length) return '';
+  var minA=Math.min.apply(null,act), maxA=Math.max.apply(null,act);
+
+  var monDraw=[];
+  if(mon){
+    for(var yo=0;yo<=1;yo++){
+      var ms=mon.start+yo*365, me=mon.end+yo*365;
+      if(me>=minA-30 && ms<=maxA+30){ monDraw.push([ms,me]); minA=Math.min(minA,ms); maxA=Math.max(maxA,me); }
+    }
+  }
+  var axMin=monthBounds(minA-4,'start'), axMax=monthBounds(maxA+4,'end');
+  if(axMax-axMin<60) axMax=axMin+60;
+
+  var W=880, padL=56, padR=14, padT=30, plotW=W-padL-padR;
+  var laneH=26, gap=6;
+  var pests=tl.pests||[];
+  var hasPests=pests.some(function(p){ return p.start!=null; });
+  var yPrep=padT, yPhase=padT+laneH+gap, yCare=padT+2*(laneH+gap);
+  var yPest=hasPests?(yCare+laneH+gap):null;
+  var laneBot=(hasPests?yPest:yCare)+laneH, H=laneBot+24;
+  var x=function(d){ return padL + ((d-axMin)/(axMax-axMin))*plotW; };
+  var s='<svg id="tlsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:660px" xmlns="http://www.w3.org/2000/svg">';
+
+  var mi=0;
+  for(var da=axMin; da<axMax; ){
+    var me2=Math.min(monthBounds(da,'end'), axMax);
+    if(mi%2===1) s+='<rect x="'+x(da)+'" y="'+padT+'" width="'+(x(me2)-x(da))+'" height="'+(laneBot-padT)+'" fill="rgba(139,111,71,0.04)"/>';
+    da=me2; mi++;
+  }
+  monDraw.forEach(function(mm){
+    var a=Math.max(mm[0],axMin), b=Math.min(mm[1],axMax); if(b<=a) return;
+    s+='<rect x="'+x(a)+'" y="'+padT+'" width="'+(x(b)-x(a))+'" height="'+(laneBot-padT)+'" fill="rgba(74,120,176,0.14)"/>';
+    s+='<text x="'+((x(a)+x(b))/2)+'" y="'+(padT-17)+'" text-anchor="middle" fill="#4a78b0" font-size="10">'+esc(mon.label)+'</text>';
+  });
+  for(var db=axMin; db<axMax+1; ){
+    var xm=x(db);
+    s+='<line x1="'+xm+'" y1="'+padT+'" x2="'+xm+'" y2="'+laneBot+'" stroke="#e0d6c2"/>';
+    var yr2=Math.floor(db/365), wi=db-yr2*365, mo=0; for(var i2=0;i2<12;i2++){ if(wi>=MONTH_CUM[i2]) mo=i2; }
+    s+='<text x="'+(xm+3)+'" y="'+(padT-5)+'" fill="#9a8a70" font-size="10">'+(mo+1)+'월</text>';
+    [10,20].forEach(function(dd){ var xd=x(db+dd); if(db+dd<axMax) s+='<line x1="'+xd+'" y1="'+padT+'" x2="'+xd+'" y2="'+laneBot+'" stroke="#efe7d6" stroke-dasharray="2 3"/>'; });
+    db=monthBounds(db,'end');
+  }
+  s+='<line x1="'+padL+'" y1="'+laneBot+'" x2="'+(W-padR)+'" y2="'+laneBot+'" stroke="#d8c9b0"/>';
+
+  function laneLabel(y,t){ return '<text x="4" y="'+(y+laneH/2+4)+'" fill="#8B6F47" font-size="10" font-weight="700">'+t+'</text>'; }
+  s+=laneLabel(yPrep,'\ubc2d\uc900\ube44')+laneLabel(yPhase,'\uc7ac\ubc30')+laneLabel(yCare,'\uad00\ub9ac');
+
+  prep.forEach(function(p){
+    var tip=esc(p.label+(p.note?(' \u00b7 '+p.note):''));
+    if(p.start!=null){
+      var x0=x(sh(p.start)), x1=x(sh(p.end)), w=Math.max(4,x1-x0);
+      s+='<rect class="tlmk" data-tip="'+tip+'" x="'+x0+'" y="'+(yPrep+6)+'" width="'+w+'" height="14" rx="4" fill="#8B6F47" opacity="0.85"/>';
+      if(w>44) s+='<text x="'+((x0+x1)/2)+'" y="'+(yPrep+17)+'" text-anchor="middle" fill="#fff" font-size="9.5">'+esc(p.label)+'</text>';
+    } else if(p.doy!=null){
+      var xx=x(sh(p.doy));
+      s+='<path class="tlmk" data-tip="'+tip+'" d="M'+xx+' '+(yPrep+6)+' l6 7 l-6 7 l-6 -7 z" fill="#8B6F47"/>';
+      s+='<text x="'+xx+'" y="'+(yPrep+4)+'" text-anchor="middle" fill="#8B6F47" font-size="9">'+esc(p.label)+'</text>';
+    }
+  });
+  phases.forEach(function(p){
+    var x0=x(sh(p.start)), x1=x(sh(p.end)), w=Math.max(5,x1-x0), col=PHC[p.key]||'#8B6F47';
+    var tip=esc(p.label+' \u00b7 '+doyToLabel(p.start)+'~'+doyToLabel(p.end));
+    s+='<rect class="tlmk" data-tip="'+tip+'" x="'+x0+'" y="'+(yPhase+4)+'" width="'+w+'" height="18" rx="6" fill="'+col+'" opacity="0.9"/>';
+    if(p.opt_start!=null){
+      var o0=x(sh(p.opt_start)), o1=x(sh(p.opt_end)), ow=Math.max(3,o1-o0);
+      s+='<rect class="tlmk" data-tip="'+esc('\ucd5c\uc801 \ud30c\uc885 \u00b7 '+doyToLabel(p.opt_start)+'~'+doyToLabel(p.opt_end))+'" x="'+o0+'" y="'+(yPhase+4)+'" width="'+ow+'" height="18" rx="6" fill="'+col+'"/>';
+      s+='<rect x="'+o0+'" y="'+(yPhase+4)+'" width="'+ow+'" height="18" rx="6" fill="none" stroke="#fff" stroke-width="1" stroke-dasharray="2 2"/>';
+    }
+    if(w>48) s+='<text x="'+((x0+x1)/2)+'" y="'+(yPhase+17)+'" text-anchor="middle" fill="#fff" font-size="10" font-weight="500">'+esc(p.label)+'</text>';
+    else s+='<text x="'+((x0+x1)/2)+'" y="'+(yPhase+2)+'" text-anchor="middle" fill="'+col+'" font-size="9">'+esc(p.label)+'</text>';
+  });
+  function fertMark(xx,tip){ return '<path class="tlmk" data-tip="'+esc(tip)+'" d="M'+xx+' '+(yCare+1)+' l5 6 l-5 6 l-5 -6 z" fill="#c79a3c"/>'+'<text x="'+xx+'" y="'+(yCare+25)+'" text-anchor="middle" fill="#a5791f" font-size="7.5">비료</text>'; }
+  function sprayMark(xx,tip,num,word){ var m='<circle class="tlmk" data-tip="'+esc(tip)+'" cx="'+xx+'" cy="'+(yCare+13)+'" r="6" fill="#3f86a6"/>'; if(num!=null) m+='<text x="'+xx+'" y="'+(yCare+16)+'" text-anchor="middle" fill="#fff" font-size="8">'+num+'</text>'; if(word) m+='<text x="'+xx+'" y="'+(yCare+25)+'" text-anchor="middle" fill="#3f6f86" font-size="7.5">방제</text>'; return m; }
+  care.forEach(function(c){
+    if(c.kind==='fert'){
+      if(c.start!=null) s+=fertMark(x(sh(Math.round((c.start+c.end)/2))), c.label+' \u00b7 '+doyToLabel(c.start)+'~'+doyToLabel(c.end));
+      else if(c.doy!=null) s+=fertMark(x(sh(c.doy)), c.label+' \u00b7 '+doyToLabel(c.doy));
+    } else if(c.kind==='spray'){
+      if(c.doys) c.doys.forEach(function(d,i){ s+=sprayMark(x(sh(d)), c.label+' '+(i+1)+'\ud68c \u00b7 '+doyToLabel(d)+(c.note?(' ('+c.note+')'):''), c.doys.length>1?(i+1):null, i===0); });
+      else if(c.doy!=null) s+=sprayMark(x(sh(c.doy)), c.label+' \u00b7 '+doyToLabel(c.doy), null, true);
+    }
+  });
+  if(hasPests){
+    var PC={disease:'#9b3d3d', pest:'#b5842b'};
+    s+=laneLabel(yPest,'병해충');
+    pests.forEach(function(p){
+      if(p.start==null) return;
+      var ps0=sh(p.start), pe0=sh(p.end!=null?p.end:p.start);
+      if(pe0<axMin || ps0>axMax) return;
+      var x0=x(Math.max(ps0,axMin)), x1=x(Math.min(pe0,axMax)), w=Math.max(5,x1-x0);
+      var col=PC[p.type]||'#9b3d3d';
+      var op=p.severity==='high'?0.92:(p.severity==='low'?0.5:0.72);
+      var tip=esc((p.type==='pest'?'[해충] ':'[병] ')+p.name+' · '+(p.time||(doyToLabel(p.start)+(p.end!=null?('~'+doyToLabel(p.end)):''))));
+      s+='<rect class="tlmk" data-tip="'+tip+'" x="'+x0+'" y="'+(yPest+6)+'" width="'+w+'" height="14" rx="4" fill="'+col+'" opacity="'+op+'"/>';
+      if(w>52) s+='<text x="'+((x0+x1)/2)+'" y="'+(yPest+17)+'" text-anchor="middle" fill="#fff" font-size="9.5">'+esc(p.name)+'</text>';
+    });
+  }
+  var td=todayDoy(), tds=(wrap && td<sowStart)?td+365:td;
+  if(tds>=axMin&&tds<=axMax){
+    var tx=x(tds);
+    s+='<line x1="'+tx+'" y1="'+(padT-2)+'" x2="'+tx+'" y2="'+laneBot+'" stroke="var(--today)" stroke-width="2"/>';
+    s+='<text x="'+tx+'" y="'+(laneBot+14)+'" text-anchor="middle" fill="var(--today)" font-size="10">\uc624\ub298 '+doyToLabel(td)+'</text>';
+  }
+  s+='</svg>';
+  return s;
+}
+function tlLegend(tl){
+  var hasPests = tl && (tl.pests||[]).some(function(p){ return p.start!=null; });
+  var h='<div class="tl-legend">'
+   +'<span class="it"><span class="sw" style="background:#8B6F47"></span>밭준비</span>'
+   +'<span class="it"><span class="sw" style="background:#6b8e4e"></span>파종</span>'
+   +'<span class="it"><span class="sw" style="background:#9a7bb0"></span>개화·형성</span>'
+   +'<span class="it"><span class="sw" style="background:#b0472b"></span>수확</span>'
+   +'<span class="it"><span class="mk" style="background:#c79a3c;transform:rotate(45deg);border-radius:2px"></span>비료</span>'
+   +'<span class="it"><span class="mk" style="background:#3f86a6;border-radius:50%"></span>방제</span>'
+   +'<span class="it"><span class="sw" style="background:rgba(74,120,176,0.32)"></span>평년 장마</span>';
+  if(hasPests) h+='<span class="it"><span class="sw" style="background:#9b3d3d"></span>병</span>'
+   +'<span class="it"><span class="sw" style="background:#b5842b"></span>해충</span>';
+  return h+'</div>';
+}
+function tlSummary(tl){
+  if(!tl) return '';
+  var parts=[];
+  (tl.phases||[]).forEach(function(p){
+    var opt=(p.opt_start!=null)?(' <span style="color:#9a8a70">(최적 '+doyToLabel(p.opt_start)+'~'+doyToLabel(p.opt_end)+')</span>'):'';
+    parts.push('<b>'+esc(p.label)+'</b> '+doyToLabel(p.start)+'~'+doyToLabel(p.end)+opt);
+  });
+  if(tl.monsoon) parts.push('<b>'+esc(tl.monsoon.label)+'</b> '+doyToLabel(tl.monsoon.start)+'~'+doyToLabel(tl.monsoon.end));
+  return '<div class="tl-sum">'+parts.join(' &nbsp;·&nbsp; ')+'</div>';
+}
+function bindTimelineTips(){
+  var tip=$('#tip'), guide=$('#tlguide'); if(!tip) return;
+  document.querySelectorAll('.tlmk').forEach(function(el){
+    el.addEventListener('mouseenter',function(){
+      tip.textContent=el.getAttribute('data-tip'); tip.style.display='block';
+      if(guide && el.ownerSVGElement){
+        var r=el.getBoundingClientRect(), sr=el.ownerSVGElement.getBoundingClientRect();
+        guide.style.left=(r.left+r.width/2)+'px'; guide.style.top=sr.top+'px'; guide.style.height=sr.height+'px'; guide.style.display='block';
+      }
+    });
+    el.addEventListener('mousemove',function(e){ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY+12)+'px'; });
+    el.addEventListener('mouseleave',function(){ tip.style.display='none'; if(guide) guide.style.display='none'; });
+  });
+}
+function timelineFallback(){
+  if(!STAGES || !STAGES.stages || !STAGES.stages.length) return '';
+  var sow=STAGES.sow_doy, harv=STAGES.harv_doy, wrap=STAGES.wrap;
+  var needWrap=wrap||harv>365, maxDoy=365+(needWrap?90:10);
+  var W=860, padL=14, padR=14, padT=24, plotW=W-padL-padR, cy=54, H=88;
+  var x=function(d){ return padL+(d/maxDoy)*plotW; };
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:'+W+'px" xmlns="http://www.w3.org/2000/svg">';
+  for(var m=0;m<=12;m++){ var xx=x(MONTH_CUM[m]); s+='<line x1="'+xx+'" y1="'+padT+'" x2="'+xx+'" y2="'+(H-14)+'" stroke="#efe7d6"/>'; if(m<12)s+='<text x="'+x((MONTH_CUM[m]+MONTH_CUM[m+1])/2)+'" y="'+(padT-8)+'" text-anchor="middle" fill="#9a8a70" font-size="11">'+(m+1)+'월</text>'; }
+  function band(a,b){ return '<rect x="'+a+'" y="'+(cy-8)+'" width="'+Math.max(3,b-a)+'" height="16" rx="8" fill="var(--band)"/>'; }
+  if(wrap){ s+=band(x(sow),x(365)); s+=band(x(365),x(365+harv)); } else s+=band(x(sow),x(harv));
+  STAGES.stages.forEach(function(st){ var d=st.doy; if(wrap&&st.key==='harvest'&&d<sow)d+=365; var mx=x(d); s+='<circle cx="'+mx+'" cy="'+cy+'" r="7" fill="'+(MK[st.key]||'var(--gold)')+'" stroke="#fff" stroke-width="1.5"/><text x="'+mx+'" y="'+(cy+22)+'" text-anchor="middle" fill="#9a8a70" font-size="9">'+doyToLabel(st.doy)+'</text>'; });
+  s+='</svg>';
+  return s;
+}
+
+/* ── 두둑 위젯 (crop_log.html 이식, 밭→토질선택으로만 변경) ── */
+const PARAMS = [
+  {k:'h', lab:function(c){return '두둑 높이';},      bounds:function(c){return [5,40];},                                             def:function(c){return mid(c.h);}},
+  {k:'w', lab:function(c){return '두둑 윗면 너비';},  bounds:function(c){return [Math.max(20,c.w[0]-20), c.w[1]+40];},                def:function(c){return mid(c.w);}},
+  {k:'r3',lab:function(c){return c.r3l||'줄/이랑 간격';}, bounds:function(c){return [Math.max(5,Math.floor(c.r3[0]*0.5)), Math.ceil(c.r3[1]*1.5)];}, def:function(c){return mid(c.r3);}},
+  {k:'pl',lab:function(c){return '포기(주간) 간격';}, bounds:function(c){return [Math.max(5,Math.floor(c.pl[0]*0.5)), Math.ceil(c.pl[1]*1.6)];}, def:function(c){return mid(c.pl);}}
+];
+function syncMulchButtons(){
+  document.querySelectorAll('#mulchRow .mbtn').forEach(function(b){ b.classList.toggle('on', b.dataset.m===mulch); });
+}
+function setMulch(m){ mulch=m; syncMulchButtons(); renderBed(); }
+function setSoil(s){ curSoilSel=s; document.querySelectorAll('#soilsel .soilbtn').forEach(function(b){ b.classList.toggle('on', b.dataset.s===s); }); renderBed(); }
+function buildSliders(c){
+  const sc=$('#bedSliders'); sc.innerHTML='';
+  PARAMS.forEach(function(o){
+    const b=o.bounds(c), dv=o.def(c); V[o.k]=dv;
+    const d=document.createElement('div'); d.className='bsl';
+    d.innerHTML='<div class="bsl-h"><span class="bsl-lab">'+o.lab(c)+'</span><span class="bsl-val" id="bv_'+o.k+'"></span></div>'
+      +'<input type="range" id="bs_'+o.k+'" min="'+b[0]+'" max="'+b[1]+'" step="1" value="'+dv+'">'
+      +'<div class="bsl-j" id="bj_'+o.k+'"></div>';
+    sc.appendChild(d);
+  });
+  PARAMS.forEach(function(o){ $('#bs_'+o.k).addEventListener('input',function(){ V[o.k]=+this.value; renderBed(); }); });
+}
+function mulchNote(){
+  const wet = curBed ? (curBed.wet||1) : 1;
+  if(mulch==='full') return wet>=2
+    ? '전면 멀칭 — 두둑 양 옆까지 비닐. 지온↑·잡초 억제 강함. 빗물 침투·통풍이 적어, 습해에 약한 작물이라 배수·관수를 특히 살피세요.'
+    : '전면 멀칭 — 두둑 양 옆까지 비닐. 지온↑·잡초 억제 강함. 빗물이 두둑 안으로 덜 들어가니 건조기 관수를 신경 쓰세요.';
+  if(mulch==='none') return '무멀칭 — 흙 노출. 지온·잡초 관리 부담이 크고 표토가 잘 마릅니다. 관수가 잦아질 수 있어요.';
+  return '윗면 비닐 + 옆면 초생 — 통풍·빗물 침투가 좋고 지온도 안정. 초기 옆면 풀 경합만 관리하세요.';
+}
+function judge(k,v,c,soil){
+  if(k==='h'){var lo=c.h[0],hi=c.h[1];
+    if(soil==='모래질'){var g=[Math.max(8,lo-3),hi];
+      if(v>=g[0]&&v<=g[1])return{lv:'g',t:'적정 (모래질은 낮아도 무방)',op:g};
+      if(v<g[0])return{lv:'y',t:'낮음 — 평지 배수 확인',op:g};
+      return{lv:'y',t:'높아 더 빨리 마름(건조 주의)',op:g};}
+    if(soil==='참흙'){var g=[lo,hi];
+      if(v>=g[0]&&v<=g[1])return{lv:'g',t:'적정',op:g};
+      if(v<g[0])return{lv:'y',t:'다소 낮음 — 배수 여유 부족',op:g};
+      return{lv:'y',t:'필요 이상 높음(작업량↑)',op:g};}
+    if(soil==='질참흙'){var g=[lo+4,hi+6];
+      if(v>=g[0]&&v<=g[1])return{lv:'g',t:'적정 (약간 높임)',op:g};
+      if(v<g[0])return{lv:'y',t:'낮음 — 과습 여지',op:g};
+      return{lv:'y',t:'다소 높음',op:g};}
+    var off=(c.wet>=3?8:c.wet>=2?6:3),gl=hi+off,g=[gl,40];
+    if(v>=gl)return{lv:'g',t:'적정 (진흙질=높게)',op:g};
+    if(v>=gl-4)return{lv:'y',t:'경계 — 조금 더 높이면 안전',op:g};
+    return (c.wet>=2?{lv:'r',t:'낮아 습해·병 위험 — '+gl+'cm↑',op:g}:{lv:'y',t:'낮음 — 배수 확보 필요',op:g});
+  }
+  var lo,hi,rlo=0.7,rhi=1.4,tg,tl,th;
+  if(k==='w'){lo=c.w[0];hi=c.w[1];tg='적정';tl='좁아 1줄도 빠듯';th='넓어 가운데 배수·작업 부담';}
+  else if(k==='r3'){lo=c.r3[0];hi=(soil==='진흙질'?Math.ceil(c.r3[1]*1.1):c.r3[1]);rhi=1.5;tg='적정';tl='좁아 통풍·작업 여유 부족';th='넓어 공간 활용 낮음';}
+  else{lo=c.pl[0];hi=(soil==='진흙질'?Math.ceil(c.pl[1]*1.15):c.pl[1]);rhi=1.5;tg='적정'+(soil==='진흙질'?' (통풍 위해 약간 넓게)':'');tl='밀식 — 통풍 나빠 병 위험';th='성겨 수량 손실';}
+  var g=[lo,hi];
+  if(v>=lo&&v<=hi)return{lv:'g',t:tg,op:g};
+  if(v<lo)return{lv:(v<lo*rlo?'r':'y'),t:tl,op:g};
+  return{lv:(v>hi*rhi?'r':'y'),t:th,op:g};
+}
+function drawBed(c, soil){
+  var h=V.h,w=V.w,r3=V.r3,r3l=c.r3l||'';
+  var py=Math.max(12,Math.min(h*1.7,92)), tw=Math.max(28,Math.min(w*0.68,240)), slope=13, baseY=172, cx=150, topY=baseY-py;
+  var t0=cx-tw/2,t1=cx+tw/2,b0=t0-slope,b1=t1+slope, fill=soilFill[soil]||'#C6A16E';
+  var isRidge=r3l.indexOf('이랑')>=0;
+  var s='<svg viewBox="0 0 480 205" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="두둑 단면">';
+  s+='<line x1="0" y1="172" x2="480" y2="172" stroke="#d8c9b0"/>';
+  s+='<polygon points="'+b0+',172 '+t0+','+topY+' '+t1+','+topY+' '+b1+',172" fill="'+fill+'" stroke="#8A6A45" stroke-width="1"/>';
+  if(mulch==='full'){
+    s+='<path d="M'+(b0-3)+' 172 L'+b0+' 172 L'+t0+' '+topY+' L'+t1+' '+topY+' L'+b1+' 172 L'+(b1+3)+' 172" fill="none" stroke="#3E3E3E" stroke-width="3" stroke-linejoin="round"/>';
+    s+='<line x1="'+(t0+2)+'" y1="'+(topY-1.5)+'" x2="'+(t1-2)+'" y2="'+(topY-1.5)+'" stroke="#8A8A8A" stroke-width="1"/>';
+  } else if(mulch==='side'){
+    s+='<rect x="'+t0+'" y="'+(topY-1)+'" width="'+tw+'" height="5" rx="1.5" fill="#3E3E3E" stroke="#6E6E6E" stroke-width="0.7"/>';
+  } else {
+    s+='<g stroke="#8FAE6E" stroke-width="1" fill="none"><line x1="'+(cx-tw/4)+'" y1="'+topY+'" x2="'+(cx-tw/4-2)+'" y2="'+(topY-5)+'"/><line x1="'+(cx+tw/4)+'" y1="'+topY+'" x2="'+(cx+tw/4+2)+'" y2="'+(topY-5)+'"/></g>';
+  }
+  var xs=[];
+  if(isRidge){ xs=[cx]; }
+  else{ var n=Math.max(1,Math.min(5,Math.round(w/r3))); if(n===1){xs=[cx];} else { var span=tw-16,step=span/(n-1); for(var i=0;i<n;i++)xs.push(t0+8+step*i);} }
+  s+='<g stroke="#4E7A34" stroke-width="1.5" fill="none">';
+  for(var j=0;j<xs.length;j++){var x=xs[j]; s+='<path d="M'+x+' '+(topY-1)+' V'+(topY-11)+' M'+x+' '+(topY-6)+' L'+(x-5)+' '+(topY-10)+' M'+x+' '+(topY-6)+' L'+(x+5)+' '+(topY-10)+'"/>';}
+  s+='</g>';
+  if(mulch==='side'){
+    s+='<g stroke="#6FA04E" stroke-width="1.3">';
+    for(var gx=b1+6; gx<b1+40 && gx<474; gx+=11){ s+='<line x1="'+gx+'" y1="172" x2="'+(gx-2)+'" y2="165"/>'; }
+    s+='<line x1="'+(b0-6)+'" y1="172" x2="'+(b0-8)+'" y2="165"/></g>';
+    s+='<g stroke="#7FA85E" stroke-width="1.1"><line x1="'+((t1+b1)/2)+'" y1="'+((topY+172)/2)+'" x2="'+((t1+b1)/2+3)+'" y2="'+((topY+172)/2-6)+'"/><line x1="'+((t0+b0)/2)+'" y1="'+((topY+172)/2)+'" x2="'+((t0+b0)/2-3)+'" y2="'+((topY+172)/2-6)+'"/></g>';
+  }
+  s+='<line x1="'+(b0-16)+'" y1="'+topY+'" x2="'+(b0-16)+'" y2="172" stroke="#9a8a70"/>';
+  s+='<line x1="'+(b0-20)+'" y1="'+topY+'" x2="'+(b0-12)+'" y2="'+topY+'" stroke="#9a8a70"/><line x1="'+(b0-20)+'" y1="172" x2="'+(b0-12)+'" y2="172" stroke="#9a8a70"/>';
+  s+='<text x="'+(b0-24)+'" y="'+((topY+172)/2)+'" transform="rotate(-90 '+(b0-24)+' '+((topY+172)/2)+')" text-anchor="middle" fill="#6b5536" font-size="11">높이 '+h+'</text>';
+  s+='<line x1="'+t0+'" y1="'+(topY-10)+'" x2="'+t1+'" y2="'+(topY-10)+'" stroke="#9a8a70"/><text x="'+cx+'" y="'+(topY-14)+'" text-anchor="middle" fill="#6b5536" font-size="11">윗면 '+w+'</text>';
+  if(isRidge){
+    var gap=Math.max(tw+16,Math.min(r3*1.0,300)), cx2=cx+gap, m2=Math.min(cx2,466);
+    s+='<line x1="'+m2+'" y1="'+topY+'" x2="'+m2+'" y2="172" stroke="#9a8a70" stroke-dasharray="3 3"/>';
+    s+='<text x="'+m2+'" y="'+(topY-4)+'" text-anchor="middle" fill="#b0a189" font-size="10">다음 두둑</text>';
+    s+='<line x1="'+cx+'" y1="186" x2="'+m2+'" y2="186" stroke="#9a8a70"/><line x1="'+cx+'" y1="182" x2="'+cx+'" y2="190" stroke="#9a8a70"/><line x1="'+m2+'" y1="182" x2="'+m2+'" y2="190" stroke="#9a8a70"/>';
+    s+='<text x="'+((cx+m2)/2)+'" y="199" text-anchor="middle" fill="#6b5536" font-size="11">이랑 '+r3+'cm</text>';
+  } else {
+    s+='<text x="'+cx+'" y="197" text-anchor="middle" fill="#6b5536" font-size="11">'+xs.length+'줄 · 줄사이 '+r3+'cm</text>';
+  }
+  s+='</svg>';
+  $('#bedSec').innerHTML=s;
+}
+function renderBed(){
+  if(!curBed) return;
+  var soil=curSoilSel;
+  var byTxt=(curBed.by && curBed.by[soil]) ? curBed.by[soil] : '';
+  $('#bedSoilNote').innerHTML = '토질 <b>'+esc(soil)+'</b> 기준' + (byTxt ? (' — '+esc(byTxt)) : '');
+  $('#mulchNote').textContent = mulchNote();
+  var reds=0,yels=0;
+  PARAMS.forEach(function(o){
+    $('#bv_'+o.k).textContent=V[o.k]+'cm';
+    var j=judge(o.k,V[o.k],curBed,soil);
+    if(j.lv==='r')reds++; else if(j.lv==='y')yels++;
+    $('#bj_'+o.k).innerHTML='<span class="dot" style="background:'+C[j.lv]+'"></span>'+j.t+'<span class="op">적정 '+j.op[0]+'~'+j.op[1]+'cm</span>';
+  });
+  drawBed(curBed, soil);
+  var st,col,msg;
+  if(reds>0){ st='조정 필요'; col=C.r; msg=reds+'개 항목이 위험 범위입니다.'; }
+  else if(yels>0){ st='대체로 무난'; col=C.y; msg=yels+'개 항목 경계 — 미세조정 권장.'; }
+  else{ st='좋은 조합'; col=C.g; msg='이 토질에 맞는 적정 조합입니다.'; }
+  var sum=$('#bedSummary'); sum.style.borderLeftColor=col;
+  sum.innerHTML='<span style="color:'+col+';font-weight:700">'+st+'</span> · '+msg;
+}
+
+/* ── 카드 조립 ── */
+function box(k, mkColor, v, sub){
+  return '<div class="box"><div class="k"><span class="mk" style="background:'+mkColor+'"></span>'+esc(k)+'</div><div class="v">'+(v||'—')+'</div>'+(sub?('<div class="sub">'+esc(sub)+'</div>'):'')+'</div>';
+}
+function shiftTimeline(tl, off){
+  function sd(d){ return d==null?d:(d+off); }
+  var t={monsoon: tl.monsoon, phases:[], prep:[], care:[]};
+  (tl.phases||[]).forEach(function(p){ var q={key:p.key,label:p.label,start:sd(p.start),end:sd(p.end)}; if(p.opt_start!=null){q.opt_start=sd(p.opt_start);q.opt_end=sd(p.opt_end);} t.phases.push(q); });
+  (tl.prep||[]).forEach(function(p){ var q={label:p.label,note:p.note}; if(p.doy!=null)q.doy=sd(p.doy); if(p.start!=null){q.start=sd(p.start);q.end=sd(p.end);} t.prep.push(q); });
+  (tl.care||[]).forEach(function(c){ var q={kind:c.kind,label:c.label,note:c.note}; if(c.doy!=null)q.doy=sd(c.doy); if(c.start!=null){q.start=sd(c.start);q.end=sd(c.end);} if(c.doys)q.doys=c.doys.map(sd); t.care.push(q); });
+  t.pests = tl.pests;
+  return t;
+}
+function computeStatus(tl, T){
+  var phases=tl.phases||[], care=tl.care||[], prep=tl.prep||[], mon=tl.monsoon;
+  var sowP=phases.filter(function(p){return p.key==='sowing';})[0];
+  var harvP=phases.filter(function(p){return p.key==='harvest';})[0];
+  var sowStart=sowP?sowP.start:(phases.length?Math.min.apply(null,phases.map(function(p){return p.start;})):0);
+  var wrap=!!(harvP&&sowP&&harvP.start<sowP.start);
+  function sh(d){ return (wrap && d<sowStart) ? d+365 : d; }
+  var t=(wrap && T<sowStart)?T+365:T;
+  var starts=[], ends=[];
+  phases.forEach(function(p){ starts.push(sh(p.start)); ends.push(sh(p.end)); });
+  prep.forEach(function(p){ if(p.start!=null){starts.push(sh(p.start));ends.push(sh(p.end));} if(p.doy!=null){starts.push(sh(p.doy));ends.push(sh(p.doy));} });
+  var first=starts.length?Math.min.apply(null,starts):t, last=ends.length?Math.max.apply(null,ends):t;
+  var cur=null; phases.forEach(function(p){ if(t>=sh(p.start)&&t<=sh(p.end)) cur={key:p.key,label:p.label,start:sh(p.start),end:sh(p.end)}; });
+  var nextP=null; phases.forEach(function(p){ var ps=sh(p.start); if(ps>t&&(!nextP||ps<nextP.start)) nextP={label:p.label,start:ps}; });
+  var up=[];
+  function pu(label,doy){ var d=sh(doy); if(d>=t && d<=t+14) up.push({label:label,doy:d,d:d-t}); }
+  care.forEach(function(c){ if(c.doys)c.doys.forEach(function(d,i){ pu(c.label+' '+(i+1)+'회', d); }); else if(c.doy!=null) pu(c.label,c.doy); else if(c.start!=null) pu(c.label,c.start); });
+  prep.forEach(function(p){ if(p.doy!=null) pu(p.label,p.doy); else if(p.start!=null) pu(p.label,p.start); });
+  up.sort(function(a,b){return a.doy-b.doy;});
+  var monInfo=null;
+  if(mon){ [[mon.start,mon.end],[mon.start+365,mon.end+365]].forEach(function(m){
+    if(t>=m[0]&&t<=m[1]) monInfo={state:'in'};
+    else if(m[0]>t && m[0]-t<=21 && !monInfo) monInfo={state:'soon', d:m[0]-t};
+  }); }
+  var pestName=null;
+  (tl.pests||[]).forEach(function(p){ if(p.severity!=='high'||p.start==null)return; var pps=sh(p.start), ppe=sh(p.end!=null?p.end:p.start); if(t>=pps&&t<=ppe && !pestName) pestName=p.name; });
+  return {cur:cur, nextP:nextP, up:up, first:first, last:last, t:t, mon:monInfo, harvEnd:harvP?sh(harvP.end):null, pest:pestName};
+}
+function statusHTML(st){
+  var T=st.t, lines=[];
+  if(T < st.first){ lines.push('표준 일정 기준 <b>재배 시작 전</b>입니다. 첫 작업(밭 준비·파종)까지 약 <b>'+(st.first-T)+'일</b>.'); }
+  else if(T > st.last){ lines.push('표준 일정 기준 <b>재배가 끝난 시기</b>입니다'+(st.harvEnd!=null?(' (수확 마감 '+doyToLabel(st.harvEnd)+' 지남)'):'')+'.'); }
+  else if(st.cur){ lines.push('오늘은 <b>'+esc(st.cur.label)+'</b> 기간입니다 ('+doyToLabel(st.cur.start)+'~'+doyToLabel(st.cur.end)+').'); if(st.cur.key==='harvest') lines.push('수확 마감까지 약 <b>'+Math.max(0,st.cur.end-T)+'일</b>.'); }
+  else if(st.nextP){ lines.push('단계 사이입니다. 다음은 <b>'+esc(st.nextP.label)+'</b> \u2014 약 <b>'+(st.nextP.start-T)+'일</b> 뒤 시작.'); }
+  else { lines.push('재배 기간 중입니다.'); }
+  if(st.up && st.up.length){ var tags=st.up.slice(0,5).map(function(u){ return '<span class="st-tag">'+esc(u.label)+' \u00b7 '+(u.d===0?'오늘':('D-'+u.d))+'</span>'; }).join(''); lines.push('<div class="st-tasks">다가오는 작업(2주): '+tags+'</div>'); }
+  else if(T>=st.first && T<=st.last){ lines.push('<div class="st-tasks">2주 내 예정 작업 없음.</div>'); }
+  if(st.mon){ if(st.mon.state==='in') lines.push('<b style="color:#4a78b0">평년 장마 기간</b> \u2014 배수\u00b7병 관리에 유의하세요.'); else if(st.mon.state==='soon') lines.push('평년 장마 시작 약 <b>'+st.mon.d+'일</b> 뒤 \u2014 배수\u00b7수확 마무리를 준비하세요.'); }
+  if(st.pest) lines.push('<b style="color:#9b3d3d">'+esc(st.pest)+' 발생 시기</b> — 예찰·예방 관리를 확인하세요.');
+  var ctx = SOW_OFFSET===0 ? '표준 일정' : ('파종 '+(SOW_OFFSET>0?'+':'')+SOW_OFFSET+'일 가정');
+  return '<div class="st-h">오늘의 상태 <span class="st-today">'+doyToLabel(todayDoy())+' 기준 \u00b7 '+ctx+'</span></div><div class="st-body">'+lines.join(' ')+'</div>';
+}
+function applyZoom(){ var svg=$('#tlsvg'); if(svg){ svg.style.width=(ZOOM*100)+'%'; svg.style.minWidth=Math.round(660*ZOOM)+'px'; } }
+function redrawTimeline(){
+  if(!CUR_TL) return;
+  var t = SOW_OFFSET ? shiftTimeline(CUR_TL, SOW_OFFSET) : CUR_TL;
+  var box=$('#tlbox'); if(box) box.innerHTML = drawTimeline(t);
+  var sum=$('#tlsum'); if(sum) sum.innerHTML = tlSummary(t);
+  var stt=$('#tlstatus'); if(stt) stt.innerHTML = statusHTML(computeStatus(t, todayDoy()));
+  var ov=$('#sowoffv'); if(ov) ov.textContent = SOW_OFFSET===0?'표준':((SOW_OFFSET>0?'+':'')+SOW_OFFSET+'일');
+  var bd=$('#offbadge'); if(bd){ if(SOW_OFFSET===0){ bd.style.display='none'; } else { bd.style.display=''; bd.textContent='파종 '+(SOW_OFFSET>0?'+':'')+SOW_OFFSET+'일'; } }
+  applyZoom(); bindTimelineTips();
+}
+function render(d){
+  ENTRY = d.entry || {}; STAGES = d.stages; curBed = d.bed || null;
+  var e = ENTRY;
+  var seasonTag = d.season ? '<span class="tag season">'+esc(d.season)+'</span>' : '';
+  var typeTag = e.type ? '<span class="tag">'+esc(e.type)+'</span>' : '';
+  var gdTag = e.growth_days ? '<span class="tag">생육 약 '+esc(e.growth_days)+'일</span>' : '';
+  var confHigh = e.confidence==='high';
+  var confTxt = confHigh ? '표준자료 신뢰 높음' : '표준 기준 · 실제는 밭 상태로 조정';
+
+  var html='';
+  html += '<div class="chead"><h1>'+esc(d.crop)+'</h1>'+seasonTag+typeTag+gdTag+'</div>';
+  html += '<div class="metaline">'+esc(e.region||'')+(e.notes?(' · '+esc(e.notes)):'')
+        + ' <span class="conf '+(confHigh?'high':'mid')+'">'+confTxt+'</span></div>';
+
+  // 오늘 상태 + 연간 재배 달력(파종 조정·배율)
+  if(d.timeline && d.timeline.phases && d.timeline.phases.length){
+    CUR_TL = d.timeline;
+    html += '<div class="status" id="tlstatus"></div>';
+    html += '<div class="card"><h2>연간 재배 달력 <span class="badge-off" id="offbadge" style="display:none"></span></h2>';
+    html += '<div class="ctrls">'
+      + '<div class="ctrl"><label>파종 조정</label><input type="range" id="sowoff" min="-45" max="45" step="1" value="0"><span class="val" id="sowoffv">표준</span><button class="rst" id="sowrst" type="button">표준</button></div>'
+      + '<div class="ctrl"><label>배율</label><input type="range" id="zoom" min="0.9" max="2" step="0.1" value="1"><span class="val" id="zoomv">1.0×</span></div>'
+      + '</div>';
+    html += '<div class="tl-wrap"><div id="tlbox"></div></div>'+tlLegend(d.timeline)+'<div id="tlsum"></div>';
+    html += '<div class="small" style="margin-top:8px">파종 조정을 움직이면 개화·형성·수확·방제·밭준비가 함께 이동하고, <b>평년 장마는 고정</b>이라 파종을 늦출수록 수확이 장마와 겹치는 게 보입니다. 배율은 가독성·큰 화면용입니다.</div>';
+    html += '</div>';
+  } else if(STAGES && STAGES.stages && STAGES.stages.length){
+    html += '<div class="card"><h2>연간 흐름</h2><div class="tl-wrap">'+timelineFallback()+'</div></div>';
+  }
+
+  // 재배력
+  html += '<div class="card"><h2>재배력</h2><div class="grid">';
+  var sow=e.sowing||{};
+  html += box('파종','var(--sow)', sow.optimal?('<span class="big">'+esc(sow.optimal)+'</span>'):'',
+              [sow.start?('시작 '+sow.start):'', sow.deadline?('마감 '+sow.deadline):''].filter(Boolean).join(' · '));
+  if(e.seedling) html += box('씨/모종','var(--gold)', esc(e.seedling.kind||''), e.seedling.days?('약 '+e.seedling.days+'일'):'');
+  if(e.flowering) html += box('개화','var(--flo)', '<span class="big">'+esc(e.flowering)+'</span>', '');
+  if(e.mid_stage && e.mid_stage.time) html += box(e.mid_stage.label||'형성기','var(--mid)',
+              '<span class="big">'+esc(e.mid_stage.time)+'</span>', e.mid_stage.confidence==='mid'?'표준 기준(경험으로 조정)':'');
+  var hv=e.harvest||{};
+  html += box('수확','var(--harv)', '<span class="big">'+esc(hv.start||'')+(hv.deadline?('~'+esc(hv.deadline)):'')+'</span>', hv.reason||'');
+  html += '</div>';
+
+  if(Array.isArray(e.fertilizing) && e.fertilizing.length){
+    html += '<div class="mini-h">시비(밑거름·웃거름)</div>';
+    html += e.fertilizing.map(function(f){ return '<div class="fertrow">'+esc(f.name||'')+'<span class="t">'+esc(f.time||'')+'</span>'+(f.note?('<div class="fnote">'+esc(f.note)+'</div>'):'')+'</div>'; }).join('');
+  }
+  if(e.spraying){
+    var sp=e.spraying;
+    var tg=(sp.targets||[]).map(function(t){return '<span class="tgt">'+esc(t)+'</span>';}).join('');
+    var line=[sp.start?('시작 '+sp.start):'', sp.interval_days?(sp.interval_days+'일 간격'):'', sp.count?('총 '+sp.count+'회'):'', sp.deadline?('종료 '+sp.deadline):''].filter(Boolean).join(' · ');
+    html += '<div class="mini-h">방제</div><div class="small">'+esc(line)+(tg?('<br>'+tg):'')+'</div>';
+  }
+  if(e.field_prep){
+    var fp=e.field_prep, items=[];
+    if(fp.tractor) items.push('트랙터 '+fp.tractor);
+    if(fp.cultivator) items.push('경운/로터리 '+fp.cultivator);
+    if(fp.mulching) items.push('멀칭 '+fp.mulching);
+    if(items.length) html += '<div class="mini-h">밭 준비</div><div class="small">'+esc(items.join(' · '))+'</div>';
+  }
+  html += '</div>';
+
+  // 두둑 설계
+  var hasSlider = curBed && curBed.h && curBed.w && curBed.r3 && curBed.pl;
+  if(hasSlider){
+    html += '<div class="card"><h2>두둑 설계</h2>';
+    html += '<div class="soilsel" id="soilsel">'
+      + ['모래질','참흙','질참흙','진흙질'].map(function(s){ return '<button class="soilbtn'+(s===curSoilSel?' on':'')+'" data-s="'+s+'" type="button">'+s+'</button>'; }).join('')
+      + '</div>';
+    html += '<div class="bed-soilnote" id="bedSoilNote"></div>';
+    html += '<div class="mulch-row" id="mulchRow"><span class="mulch-lbl">멀칭</span>'
+      + '<button class="mbtn" data-m="full" type="button">전면 멀칭</button>'
+      + '<button class="mbtn" data-m="side" type="button">윗면+옆면초생</button>'
+      + '<button class="mbtn" data-m="none" type="button">무멀칭</button></div>';
+    html += '<div class="mulch-note" id="mulchNote"></div>';
+    html += '<div class="svgwrap" id="bedSec"></div>';
+    html += '<div id="bedSliders"></div>';
+    html += '<div class="bed-summary" id="bedSummary"></div>';
+    html += '<div class="small" style="margin-top:6px">슬라이더로 치수를 바꿔보고, 토질·멀칭별 적정 여부를 확인하세요. 표준 범위 기준이며 실제는 밭 상태로 조정합니다.</div>';
+    html += '</div>';
+  } else if(e.bed){
+    var b=e.bed;
+    var lines=[b.ridge_height?('높이: '+b.ridge_height):'', b.ridge_width?('윗면: '+b.ridge_width):'',
+               b.row_spacing?('두둑 간격: '+b.row_spacing):'', b.rows_per_bed?('줄 수: '+b.rows_per_bed):'',
+               b.plant_spacing?('포기 간격: '+b.plant_spacing):'', b.mulch?('멀칭: '+b.mulch):''].filter(Boolean);
+    if(lines.length) html += '<div class="card"><h2>두둑 안내</h2><div class="small">'+esc(lines.join(' / ')).replace(/\//g,'<br>')+'</div></div>';
+  }
+
+  if(Array.isArray(e.pests) && e.pests.length){
+    html += '<div class="card"><h2>병해충</h2>';
+    html += e.pests.map(function(p){
+      var badge = p.type==='pest' ? '<span class="pbadge pest">해충</span>' : '<span class="pbadge dis">병</span>';
+      var sev = p.severity==='high' ? '<span class="psev high">주의</span>' : (p.severity==='low' ? '' : '<span class="psev mid">보통</span>');
+      var src = p.source_url ? ('<a href="'+esc(p.source_url)+'" target="_blank" rel="noopener">'+esc(p.source||'출처')+'</a>') : esc(p.source||'');
+      return '<div class="pest-item">'
+        +'<div class="pest-hd">'+badge+' <b>'+esc(p.name)+'</b> '+sev+' <span class="pest-time">'+esc(p.time||p.stage||'')+'</span></div>'
+        +(p.symptom?('<div class="pest-l"><span class="pk">증상</span> '+esc(p.symptom)+'</div>'):'')
+        +(p.management?('<div class="pest-l"><span class="pk">방제</span> '+esc(p.management)+'</div>'):'')
+        +(src?('<div class="pest-src">출처: '+src+'</div>'):'')
+        +'</div>';
+    }).join('');
+    html += '<div class="small" style="margin-top:6px">병해충 시기·방제는 지역·연도·기상에 따라 달라집니다. 출처 자료를 함께 확인하세요.</div>';
+    html += '</div>';
+  }
+  if(Array.isArray(e.sources) && e.sources.length){
+    html += '<div class="small" style="text-align:center;margin-top:8px">자료 출처: '+e.sources.map(esc).join(' · ')+'</div>';
+  }
+
+  $('#app').innerHTML = html;
+
+  if(CUR_TL){
+    var _so=$('#sowoff'), _zm=$('#zoom');
+    if(_so) _so.addEventListener('input', function(){ SOW_OFFSET=+_so.value; redrawTimeline(); });
+    if($('#sowrst')) $('#sowrst').addEventListener('click', function(){ SOW_OFFSET=0; if(_so)_so.value=0; redrawTimeline(); });
+    if(_zm) _zm.addEventListener('input', function(){ ZOOM=+_zm.value; var zv=$('#zoomv'); if(zv)zv.textContent=ZOOM.toFixed(1)+'×'; applyZoom(); });
+    redrawTimeline();
+  } else { bindTimelineTips(); }
+
+  if(hasSlider){
+    document.querySelectorAll('#soilsel .soilbtn').forEach(function(b){ b.addEventListener('click', function(){ setSoil(b.dataset.s); }); });
+    document.querySelectorAll('#mulchRow .mbtn').forEach(function(b){ b.addEventListener('click', function(){ setMulch(b.dataset.m); }); });
+    buildSliders(curBed); syncMulchButtons(); renderBed();
+  }
+}
+
+function setBack(){
+  var from=qp('from'), bl=$('#backlink'); if(!bl) return;
+  if(from==='dashboard'){ bl.textContent='← 현황판'; bl.setAttribute('href','/dashboard.html'); }
+  else { bl.textContent='← 재배 달력'; bl.setAttribute('href','/crop_calendar.html'); }
+}
+async function init(){
+  setBack();
+  var crop=qp('crop'), season=qp('season');
+  if(!crop){ $('#app').innerHTML='<div class="state">작물이 지정되지 않았습니다.<br>재배 달력에서 작물을 선택하세요.</div>'; return; }
+  try{
+    var url='/api/crop-detail?crop='+encodeURIComponent(crop)+(season?('&season='+encodeURIComponent(season)):'');
+    var d=await (await fetch(url)).json();
+    if(!d || !d.ok){ $('#app').innerHTML='<div class="state">「'+esc(crop)+'」 재배력을 찾지 못했습니다.</div>'; return; }
+    document.title = d.crop+' · 작물 상세';
+    render(d);
+  }catch(err){
+    $('#app').innerHTML='<div class="state">불러오기 실패. 잠시 후 다시 시도하세요.</div>';
+  }
+}
+init();
+</script>
+</body>
+</html>
