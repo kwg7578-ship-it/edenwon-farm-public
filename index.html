@@ -208,7 +208,8 @@ function analyze(c, T){
   var monState=null, monD=null;
   if(mon){ [[mon.start,mon.end],[mon.start+365,mon.end+365]].forEach(function(m){ if(t>=m[0]&&t<=m[1]) monState='in'; else if(m[0]>t&&m[0]-t<=21&&!monState){monState='soon';monD=m[0]-t;} }); }
   // 상태 라벨
-  var status, before=(t<first), after=(t>last);
+  /* AFTER-HARVEND-FIX */ var harvEndDoy=(harvP?sh(harvP.end):null);
+  var status, before=(t<first), after=(harvEndDoy!=null ? t>harvEndDoy : t>last);
   if(before) status='대기';
   else if(after) status='종료';
   else if(cur) status=cur.label;
@@ -237,7 +238,7 @@ function analyze(c, T){
   }
   return {crop:c.crop, season:c.season, status:status, cur:cur, nextP:nextP, before:before, after:after,
           tasks:tasks, activePests:activePests, allPests:allPests, monState:monState, monD:monD, signal:signal,
-          harvEnd:harvP?sh(harvP.end):null, t:t};
+          harvEnd:harvP?sh(harvP.end):null, nextSowM:(sowP?(function(dy){var MC=[0,31,59,90,120,151,181,212,243,273,304,334,365];var x=((dy-1)%365)+1;var m=0;for(var i=0;i<12;i++){if(x>=MC[i])m=i;}return m+1;})(sowP.start):null), wrapCrop:wrap, t:t};
 }
 
 /* 작물 목록 구성(표준 or 우리밭) */
@@ -374,7 +375,7 @@ function render(){
     if(a.before && a.nextP) ddayTxt='파종/시작까지 D-'+(a.nextP.start-a.t);
     else if(a.cur && a.cur.key==='harvest') ddayTxt='수확 마감 D-'+Math.max(0,a.cur.end-a.t);
     else if(a.nextP) ddayTxt='다음: '+esc(a.nextP.label)+' D-'+(a.nextP.start-a.t);
-    else if(a.after) ddayTxt='재배 종료';
+    else if(a.after){ var _hm=''; if(a.harvEnd!=null){ var _e=((a.harvEnd-1)%365)+1; var MC=[0,31,59,90,120,151,181,212,243,273,304,334,365],_m=0; for(var _i=0;_i<12;_i++){if(_e>=MC[_i])_m=_i;} _hm=(_m+1)+'/'+(_e-MC[_m]); } var _ns=''; if(a.nextSowM!=null){ _ns = a.wrapCrop ? (' · 다음 파종 '+a.nextSowM+'월') : (' · 내년 '+a.nextSowM+'월'); } ddayTxt = '수확 완료' + (_hm?(' · '+_hm+' 마감'):'') + _ns; }
     var pills='';
     if(a._mine) pills+='<span class="pill mine">우리밭 '+esc(a._planted)+'</span>';
     if(PESTVIEW==='all'){
