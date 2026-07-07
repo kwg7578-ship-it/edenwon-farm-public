@@ -160,7 +160,10 @@ function drawTimeline(tl){
   var hasPests=pests.some(function(p){ return p.start!=null; });
   var yPrep=padT, yPhase=padT+laneH+gap, yCare=padT+2*(laneH+gap);
   var yPest=hasPests?(yCare+laneH+gap):null;
-  var laneBot=(hasPests?yPest:yCare)+laneH, H=laneBot+24;
+  var _actN=((window.__ACTUALS||[]).length);
+  var yActual=null, _pestBot=(hasPests?yPest:yCare)+laneH;
+  if(_actN){ yActual=_pestBot+gap+6; }
+  var laneBot=(_actN? (yActual+_actN*22) : _pestBot), H=laneBot+24;
   var x=function(d){ return padL + ((d-axMin)/(axMax-axMin))*plotW; };
   var s='<svg id="tlsvg" viewBox="0 0 '+W+' '+H+'" width="100%" style="min-width:660px" xmlns="http://www.w3.org/2000/svg">';
 
@@ -244,6 +247,45 @@ function drawTimeline(tl){
     s+='<line x1="'+tx+'" y1="'+(padT-2)+'" x2="'+tx+'" y2="'+laneBot+'" stroke="var(--today)" stroke-width="2"/>';
     s+='<text x="'+tx+'" y="'+(laneBot+14)+'" text-anchor="middle" fill="var(--today)" font-size="10">\uc624\ub298 '+doyToLabel(td)+'</text>';
   }
+  /* CROP-ACTUALS-BAND */
+  (function(){
+    var _ACT=(window.__ACTUALS||[]);
+    if(!_ACT.length || yActual==null) return;
+    var _teal='#1f9e8f';
+    s+='<text x="4" y="'+(yActual+13)+'" fill="#1f8a70" font-size="10" font-weight="700">실측</text>';
+    var _stdDur=(harvP&&sowP)?(sh(harvP.end)-sh(sowP.start)):60;
+    var _td=todayDoy(), _tds=(wrap&&_td<sowStart)?_td+365:_td;
+    _ACT.forEach(function(a,i){
+      if(a.plantedDoy==null) return;
+      var aP=sh(a.plantedDoy);
+      var done=(!a.inProgress && a.harvestedDoy!=null);
+      var aH=done?sh(a.harvestedDoy):(aP+_stdDur);
+      if(aH<axMin || aP>axMax) return;
+      var barY=yActual + i*22 + 3, barH=14;
+      var xP=x(Math.max(aP,axMin));
+      if(done){
+        var xH=x(Math.min(aH,axMax)), w=Math.max(4,xH-xP);
+        var tip=esc(a.fieldName+' · 파종 '+doyToLabel(a.plantedDoy)+' ~ 수확 '+doyToLabel(a.harvestedDoy)+' · 실측 '+a.durationDays+'일');
+        s+='<rect class="tlmk" data-tip="'+tip+'" x="'+xP+'" y="'+barY+'" width="'+w+'" height="'+barH+'" rx="4" fill="'+_teal+'" opacity="0.92"/>';
+        var lbl=esc(a.fieldName+' · '+a.durationDays+'일');
+        if(w>78) s+='<text x="'+((xP+xH)/2)+'" y="'+(barY+11)+'" text-anchor="middle" fill="#fff" font-size="9">'+lbl+'</text>';
+        else s+='<text x="'+(xH+4)+'" y="'+(barY+11)+'" fill="'+_teal+'" font-size="9">'+lbl+'</text>';
+      } else {
+        var elEnd=Math.min(_tds,aH);
+        var xEl=x(Math.min(Math.max(elEnd,axMin),axMax)), wEl=Math.max(2,xEl-xP);
+        var days=_tds-aP; if(days<0)days=0;
+        var tip=esc(a.fieldName+' · 파종 '+doyToLabel(a.plantedDoy)+' · 재배 '+days+'일차 · 예상 수확 '+doyToLabel(aP+_stdDur)+'(표준 기준)');
+        s+='<rect class="tlmk" data-tip="'+tip+'" x="'+xP+'" y="'+barY+'" width="'+wEl+'" height="'+barH+'" rx="4" fill="'+_teal+'" opacity="0.92"/>';
+        if(_tds<aH){
+          var xH2=x(Math.min(aH,axMax)), wPr=Math.max(2,xH2-xEl);
+          s+='<rect x="'+xEl+'" y="'+barY+'" width="'+wPr+'" height="'+barH+'" rx="4" fill="'+_teal+'" opacity="0.10"/>';
+          s+='<rect x="'+xEl+'" y="'+barY+'" width="'+wPr+'" height="'+barH+'" rx="4" fill="none" stroke="'+_teal+'" stroke-width="1" stroke-dasharray="3 2"/>';
+        }
+        var lbl2=esc(a.fieldName+' · 재배 '+days+'일차');
+        s+='<text x="'+(xP+2)+'" y="'+(barY-3)+'" fill="'+_teal+'" font-size="9">'+lbl2+'</text>';
+      }
+    });
+  })();
   s+='</svg>';
   return s;
 }
@@ -256,7 +298,8 @@ function tlLegend(tl){
    +'<span class="it"><span class="sw" style="background:#b0472b"></span>수확</span>'
    +'<span class="it"><span class="mk" style="background:#c79a3c;transform:rotate(45deg);border-radius:2px"></span>비료</span>'
    +'<span class="it"><span class="mk" style="background:#3f86a6;border-radius:50%"></span>방제</span>'
-   +'<span class="it"><span class="sw" style="background:rgba(74,120,176,0.32)"></span>평년 장마</span>';
+   +'<span class="it"><span class="sw" style="background:rgba(74,120,176,0.32)"></span>평년 장마</span>'
+   +'<span class="it"><span class="sw" style="background:#1f9e8f"></span>영동에덴원 실측</span>';
   if(hasPests) h+='<span class="it"><span class="sw" style="background:#9b3d3d"></span>병</span>'
    +'<span class="it"><span class="sw" style="background:#b5842b"></span>해충</span>';
   return h+'</div>';
@@ -631,6 +674,7 @@ async function init(){
     var d=await (await fetch(url)).json();
     if(!d || !d.ok){ $('#app').innerHTML='<div class="state">「'+esc(crop)+'」 재배력을 찾지 못했습니다.</div>'; return; }
     document.title = d.crop+' · 작물 상세';
+    try{ var _av=await (await fetch('/api/crop-actuals?crop='+encodeURIComponent(crop))).json(); window.__ACTUALS=(_av&&_av.actuals)||[]; }catch(e){ window.__ACTUALS=[]; }
     render(d);
   }catch(err){
     $('#app').innerHTML='<div class="state">불러오기 실패. 잠시 후 다시 시도하세요.</div>';
