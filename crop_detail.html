@@ -247,6 +247,38 @@ function drawTimeline(tl){
     s+='<line x1="'+tx+'" y1="'+(padT-2)+'" x2="'+tx+'" y2="'+laneBot+'" stroke="var(--today)" stroke-width="2"/>';
     s+='<text x="'+tx+'" y="'+(laneBot+14)+'" text-anchor="middle" fill="var(--today)" font-size="10">\uc624\ub298 '+doyToLabel(td)+'</text>';
   }
+  /* CROP-SPRAY-MARKS : 우리 밭 실제 방제 점 (관리 레인, 표준 방제와 대조) */
+  (function(){
+    var _SP=(window.__SPRAYS||[]);
+    if(!_SP.length) return;
+    var _spTeal='#1f9e8f';
+    // 같은 날짜에 여러 밭·작물 방제가 있으면 doy로 묶어 한 점으로
+    var byDoy={};
+    _SP.forEach(function(s){
+      if(s.doy==null) return;
+      var dd=sh(s.doy);
+      if(dd<axMin || dd>axMax) return;
+      if(!byDoy[dd]) byDoy[dd]={items:[], date:s.date};
+      byDoy[dd].items.push(s);
+    });
+    Object.keys(byDoy).forEach(function(dd){
+      dd=+dd;
+      var g=byDoy[dd];
+      var xx=x(dd);
+      // 실제 방제 마커: teal 삼각형(표준 방제 파란 원과 구분), 관리 레인 위쪽
+      var mats=g.items.map(function(s){return s.material;}).filter(Boolean);
+      var umat=[]; mats.forEach(function(m){ if(umat.indexOf(m)<0) umat.push(m); });
+      var pnames=[];
+      g.items.forEach(function(s){
+        var mm=(s.memo||'').match(/^\[대상:\s*([^\]]+)\]/);
+        if(mm) mm[1].split(',').forEach(function(p){ p=p.trim(); if(p&&pnames.indexOf(p)<0)pnames.push(p); });
+      });
+      var tip='실제 방제 '+g.date+' \u00b7 '+(umat.join(', ')||'약제 미상')+(pnames.length?(' \u00b7 '+pnames.join('·')):'');
+      s+='<path class="tlmk" data-tip="'+esc(tip)+'" d="M'+xx+' '+(yCare-9)+' l5 8 l-5 8 l-5 -8 z" fill="'+_spTeal+'" stroke="#fff" stroke-width="1"/>';
+    });
+    // 관리 레인 라벨 옆에 '실제방제' 범례 점 (한 번)
+    s+='<circle cx="'+(padL+34)+'" cy="'+(yCare-4)+'" r="0"/>';
+  })();
   /* CROP-ACTUALS-BAND */
   (function(){
     var _ACT=(window.__ACTUALS||[]);
@@ -675,6 +707,7 @@ async function init(){
     if(!d || !d.ok){ $('#app').innerHTML='<div class="state">「'+esc(crop)+'」 재배력을 찾지 못했습니다.</div>'; return; }
     document.title = d.crop+' · 작물 상세';
     try{ var _av=await (await fetch('/api/crop-actuals?crop='+encodeURIComponent(crop))).json(); window.__ACTUALS=(_av&&_av.actuals)||[]; }catch(e){ window.__ACTUALS=[]; }
+    try{ var _sv=await (await fetch('/api/crop-sprays?crop='+encodeURIComponent(crop))).json(); window.__SPRAYS=(_sv&&_sv.sprays)||[]; }catch(e){ window.__SPRAYS=[]; }  /* CROP-SPRAY-MARKS */
     render(d);
   }catch(err){
     $('#app').innerHTML='<div class="state">불러오기 실패. 잠시 후 다시 시도하세요.</div>';
