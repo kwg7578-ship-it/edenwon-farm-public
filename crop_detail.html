@@ -288,6 +288,15 @@ function drawTimeline(tl){
     var _stdDur=(harvP&&sowP)?(sh(harvP.end)-sh(sowP.start)):60;
     var _td=todayDoy(), _tds=(wrap&&_td<sowStart)?_td+365:_td;
     _ACT.forEach(function(a,i){
+      /* TREE-AGE-BADGE : 나무는 수령 배지로 (파종~수확 막대 대신) */
+      if(a.plantYear){
+        var _age=(new Date().getFullYear())-a.plantYear;
+        var _by=yActual + i*22 + 3;
+        var _txt='\uc6b0\ub9ac \ubc2d: '+_age+'\ub144\uc0dd \u00b7 '+esc(a.fieldName)+' (\uc2dd\uc7ac '+a.plantYear+')';
+        s+='<rect x="'+(padL)+'" y="'+_by+'" width="12" height="12" rx="3" fill="#1f9e8f"/>';
+        s+='<text x="'+(padL+18)+'" y="'+(_by+10)+'" fill="#1f8a70" font-size="10.5" font-weight="600">'+_txt+'</text>';
+        return;
+      }
       if(a.plantedDoy==null) return;
       var aP=sh(a.plantedDoy);
       var done=(!a.inProgress && a.harvestedDoy!=null);
